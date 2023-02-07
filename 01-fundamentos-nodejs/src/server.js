@@ -30,42 +30,31 @@
 
 import http from 'node:http'// o node pede para colocar um prefixo node: para identificar que é um modulo do node
 import { json } from './middlewares/json.js'
-import { Database } from './database.js'
-
+import { routes } from './routes.js'
 // Cabeçalhos (Requisição/Resposta) => Metadados 
 
 // HTTP status code => 200, 201, 400, 404, 500
 
-const database = new Database()
+//  Query Params => http://localhost:3333/users?name=Diego&idade=25 URL STATEFUL => Filtros, paginação, não obrigatórios
+//  Route Params => http://localhost:3333/users/1  (Identificar um recurso) => URL STATEFUL
+//  Request Body => Enviar dados para criação ou atualização de um registro => URL STATELESS (HTTPs) 
 
-const server = http.createServer(async(req,res)=>{//cria um servidor http e essa função recebe 2 parâmetros, request e response
+
+// Edição e remoção de usuário
+const server = http.createServer( async (req,res)=>{//cria um servidor http e essa função recebe 2 parâmetros, request e response
     
     const { method,url } = req
     
     await json(req,res)
 
-    if(method === 'GET' && url === '/users'){
+    const route = routes.find(route=>{
+        return route.method === method && route.path === url
+    })
 
-        const users = database.select('users')
-
-        return res//seta o cabeçalho da resposta
-        .end(JSON.stringify(users))//ele nao consegue retornar um array, por isso tem que converter para string
-    };
-
-    if(method === 'POST' && url === '/users'){
-
-        const {name,email} = req.body
-
-        const user = ({
-            id: 1,
-            name,
-            email,
-        })
-
-        database.insert('users',user)
-
-        return res.writeHead(201).end()
-    };
+    if(route){
+        return route.handler(req,res)
+    }
+   
     return res.writeHead(404).end() 
 })
 
