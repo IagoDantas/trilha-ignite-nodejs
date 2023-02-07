@@ -1,10 +1,10 @@
 //{"users":[...]}
 
 export class Database{
-    #database = {}
+    #database = {}//quando eu designo uma variavel com # eu estou dizendo que ela é privada
 
     select(table){
-        const data = this.#database[table] ??[]
+        const data = this.#database[table] ?? []
 
         return data
     }
