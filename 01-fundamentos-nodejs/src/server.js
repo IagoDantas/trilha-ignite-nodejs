@@ -31,6 +31,7 @@
 import http from 'node:http'// o node pede para colocar um prefixo node: para identificar que é um modulo do node
 import { json } from './middlewares/json.js'
 import { routes } from './routes.js'
+import { extractQueryParams } from './utils/extract-query-params.js'
 // Cabeçalhos (Requisição/Resposta) => Metadados 
 
 // HTTP status code => 200, 201, 400, 404, 500
@@ -48,10 +49,17 @@ const server = http.createServer( async (req,res)=>{//cria um servidor http e es
     await json(req,res)
 
     const route = routes.find(route=>{
-        return route.method === method && route.path === url
+        return route.method === method && route.path.test(url)
     })
 
     if(route){
+        const routeParams = req.url.match(route.path)
+
+        const { query,...params} = routeParams.groups
+
+        req.params = params
+        req.query = query ? extractQueryParams(query) : {}
+
         return route.handler(req,res)
     }
    
