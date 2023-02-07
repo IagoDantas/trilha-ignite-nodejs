@@ -29,6 +29,7 @@
 //stateless => não salva nada em memoria, salva em dispositivos externos, como banco de dados, por exemplo
 
 import http from 'node:http'// o node pede para colocar um prefixo node: para identificar que é um modulo do node
+import { json } from './middlewares/json.js'
 
 // Cabeçalhos (Requisição/Resposta) => Metadados 
 
@@ -36,22 +37,25 @@ import http from 'node:http'// o node pede para colocar um prefixo node: para id
 
 const users = []
 
-const server = http.createServer((req,res)=>{//cria um servidor http e essa função recebe 2 parâmetros, request e response
+const server = http.createServer(async(req,res)=>{//cria um servidor http e essa função recebe 2 parâmetros, request e response
     
     const { method,url } = req
     
+    await json(req,res)
+
     if(method === 'GET' && url === '/users'){
-        return res
-        .setHeader('Content-Type','application/json')//seta o cabeçalho da resposta
+        return res//seta o cabeçalho da resposta
         .end(JSON.stringify(users))//ele nao consegue retornar um array, por isso tem que converter para string
     };
 
     if(method === 'POST' && url === '/users'){
 
+        const {name,email} = req.body
+
         users.push({
             id: 1,
-            name: 'Iago',
-            email: 'iago@example.com',
+            name,
+            email,
         })
 
         return res.writeHead(201).end()
