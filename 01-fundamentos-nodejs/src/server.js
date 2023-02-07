@@ -30,12 +30,13 @@
 
 import http from 'node:http'// o node pede para colocar um prefixo node: para identificar que é um modulo do node
 import { json } from './middlewares/json.js'
+import { Database } from './database.js'
 
 // Cabeçalhos (Requisição/Resposta) => Metadados 
 
 // HTTP status code => 200, 201, 400, 404, 500
 
-const users = []
+const database = new Database()
 
 const server = http.createServer(async(req,res)=>{//cria um servidor http e essa função recebe 2 parâmetros, request e response
     
@@ -44,6 +45,9 @@ const server = http.createServer(async(req,res)=>{//cria um servidor http e essa
     await json(req,res)
 
     if(method === 'GET' && url === '/users'){
+
+        const users = database.select('users')
+
         return res//seta o cabeçalho da resposta
         .end(JSON.stringify(users))//ele nao consegue retornar um array, por isso tem que converter para string
     };
@@ -52,11 +56,13 @@ const server = http.createServer(async(req,res)=>{//cria um servidor http e essa
 
         const {name,email} = req.body
 
-        users.push({
+        const user = ({
             id: 1,
             name,
             email,
         })
+
+        database.insert('users',user)
 
         return res.writeHead(201).end()
     };
